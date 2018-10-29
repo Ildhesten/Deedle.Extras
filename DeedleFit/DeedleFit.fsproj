@@ -1,0 +1,19 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="Chart.fs" />
+    <Compile Include="LinearRegression.fsi" />
+    <Compile Include="LinearRegression.fs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Deedle" Version="1.2.5" />
+    <PackageReference Include="MathNet.Numerics.FSharp" Version="3.20.2" />
+    <PackageReference Include="XPlot.Plotly" Version="1.5.0" />
+  </ItemGroup>
+
+</Project>
