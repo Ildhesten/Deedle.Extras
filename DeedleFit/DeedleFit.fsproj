@@ -5,6 +5,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Include="PCA.fs" />
     <Compile Include="Chart.fs" />
     <Compile Include="LinearRegression.fsi" />
     <Compile Include="LinearRegression.fs" />
