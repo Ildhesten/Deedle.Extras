@@ -49,16 +49,18 @@ module PCA =
     observations
     |> Array.map (fun row -> Array.mapi (fun i x -> (x - averages.[i]) / stdDevs.[i]) row)
     
-  let normalizeColumns (df:Frame<'a,'b>) =
-    let means = Stats.mean df
-    let stdDevs = Stats.stdDev df
+  let normalizeSeries (series: Series<'a,float>) =
     let normalizeValue mean stdDev x =
       (x - mean) / stdDev
+    let mean = Stats.mean series
+    let stdDev = Stats.stdDev series
+    series
+    |> Series.mapValues (normalizeValue mean stdDev)
+
+  let normalizeColumns (df:Frame<'a,'b>) =
     let normalizeColumn (k:'b) (row:ObjectSeries<'a>) =
-      let mean = means.[k]
-      let stdDev = stdDevs.[k]
       row.As<float>()
-      |> Series.mapValues (normalizeValue mean stdDev)
+      |> normalizeSeries
     df
     |> Frame.mapCols normalizeColumn
 

@@ -108,7 +108,11 @@ module rec LinearRegression =
       let mean = Statistics.Statistics.Mean xValues
       let ssx = xValues |> Seq.sumBy (fun x -> pown (x - mean) 2)      
       if Seq.isEmpty otherKeys then
-        stdErr
+        let sumOfSquaredXResiduals =
+          frame.[xKey] - (Stats.mean frame.[xKey])
+          |> Series.mapValues (fun x -> pown x 2)
+          |> Stats.sum
+        sqrt ((pown stdErr 2) / sumOfSquaredXResiduals)
       else  
         let tolerance = computeToleranceFor xKey xKeys frame
         stdErr / sqrt (ssx * tolerance)
@@ -212,5 +216,6 @@ module rec LinearRegression =
   /// <param name="fitIntercept">An option type that specifies a key to use for the intercept in the result, if set to None, the fit will not produce an intercept.</param>
   /// <param name="df">The dataframe to perform the regression on</param>
   /// <returns>A series with the column keys of both the independent and dependent variable, and regression coefficients as values.</returns>
+
   let simple xCol yCol fitIntercept df =
     multiDim (Seq.singleton xCol) yCol fitIntercept df
