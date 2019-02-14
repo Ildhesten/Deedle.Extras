@@ -1,4 +1,4 @@
-﻿namespace DeedleFit
+﻿namespace Deedle.Extras
 
 module PCA =
   open Deedle
@@ -48,14 +48,39 @@ module PCA =
         |> Seq.averageBy (fun x -> pown (float x.[i] - average) 2 |> sqrt))    
     observations
     |> Array.map (fun row -> Array.mapi (fun i x -> (x - averages.[i]) / stdDevs.[i]) row)
+
+  let normalizeSeriesUsing (mean : float) (stdDev : float) series =
+    let normalizeValue x =
+      (x - mean) / stdDev
+    series
+    |> Series.mapValues normalizeValue
     
   let normalizeSeries (series: Series<'a,float>) =
-    let normalizeValue mean stdDev x =
-      (x - mean) / stdDev
     let mean = Stats.mean series
     let stdDev = Stats.stdDev series
+    normalizeSeriesUsing mean stdDev series
+
+  let normalizeSeriesMedian (series: Series<'a,float>) =
+    let normalizeValue median stdDev x =
+      (x - median) / stdDev
+    let median = Stats.median series
+    let stdDev = Stats.stdDev series
     series
-    |> Series.mapValues (normalizeValue mean stdDev)
+    |> Series.mapValues (normalizeValue median stdDev)
+
+  let normalizeColumnsMedian (df:Frame<'a,'b>) =
+    let normalizeColumn (k:'b) (row:ObjectSeries<'a>) =
+      row.As<float>()
+      |> normalizeSeriesMedian
+    df
+    |> Frame.mapCols normalizeColumn
+
+  let normalizeColumnsUsing (mean : Series<'b, float>) (stdDev : Series<'b, float>) (df : Frame<'a, 'b>) =
+    let normalizeColumn (k : 'b) (row : ObjectSeries<'a>) =
+      row.As<float>()
+      |> normalizeSeriesUsing (mean.[k]) (stdDev.[k])
+    df
+    |> Frame.mapCols normalizeColumn
 
   let normalizeColumns (df:Frame<'a,'b>) =
     let normalizeColumn (k:'b) (row:ObjectSeries<'a>) =

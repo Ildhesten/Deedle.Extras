@@ -1,4 +1,4 @@
-﻿namespace DeedleFit
+﻿namespace Deedle.Extras
 
 module LinearRegression =
   open Deedle

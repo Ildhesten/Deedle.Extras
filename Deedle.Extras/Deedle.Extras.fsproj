@@ -2,9 +2,11 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
+    <AssemblyName>Deedle.Extras</AssemblyName>
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Include="Stats.fs" />
     <Compile Include="PCA.fs" />
     <Compile Include="Chart.fs" />
     <Compile Include="LinearRegression.fsi" />

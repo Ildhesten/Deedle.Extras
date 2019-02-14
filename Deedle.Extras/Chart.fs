@@ -1,6 +1,5 @@
-﻿namespace DeedleFit.Charting
+﻿namespace Deedle.Extras
 open Deedle
-open XPlot.Plotly
 open XPlot.Plotly
 
 type Chart() =
@@ -53,3 +52,18 @@ type Chart() =
     let names = columnKeys |> Seq.map (sprintf "%A") |> Seq.map Some
     let series = columnKeys |> Seq.map (fun k -> df.[k])
     Chart.Scatter(series, names)
+
+type Frame() =
+  /// <summary>
+  /// Plots all columns in the data frame as line plots.
+  /// </summary>
+  /// <param name="df">The data frame to plot.</param>
+  static member Line (df : Frame<'a,'b>) =
+    let columnNames = 
+      df.ColumnKeys 
+      |> Seq.map (sprintf "%A") 
+      |> Seq.map Some
+    let series =
+      df.ColumnKeys
+      |> Seq.map (fun k -> df.[k])
+    Chart.Line(series, columnNames)
