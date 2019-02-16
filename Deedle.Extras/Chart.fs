@@ -1,4 +1,4 @@
-﻿namespace Deedle.Extras
+﻿namespace Deedle.Extras.Charting
 open Deedle
 open XPlot.Plotly
 
