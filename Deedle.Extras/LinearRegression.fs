@@ -5,6 +5,8 @@ module rec LinearRegression =
   open MathNet.Numerics
 
   module Fit =
+    open XPlot.Plotly
+
     /// <summary>
     /// Represents a linear model fitted to specific values in a data frame.
     /// </summary>
@@ -31,6 +33,29 @@ module rec LinearRegression =
         yKey = yKey
       }
     
+    let computeXtXinverse (fit : t<'a,'b>) =
+      let addInterceptColumn (frame : Frame<'a,'b>) =
+        match fit.FitIntercept with
+        | None -> frame
+        | Some columnKey ->
+            let interceptSeries =
+              frame.RowKeys
+              |> Seq.map (fun rowKey -> (rowKey, 1.0))
+              |> Series.ofObservations
+            frame
+            |> Frame.addCol columnKey interceptSeries
+      let computeXtXInverse (frame : Frame<'a,'b>) =
+        let columnKeys = frame.ColumnKeys
+        let matrix = MathNet.Numerics.LinearAlgebra.Matrix.Build.DenseOfArray(Frame.toArray2D frame)
+        (matrix.Transpose() * matrix).Inverse().ToArray()
+        |> Frame.ofArray2D
+        |> Frame.mapColKeys (fun i -> Seq.item i columnKeys)
+        |> Frame.mapRowKeys (fun i -> Seq.item i columnKeys)
+      fit.InputFrame
+      |> Frame.filterCols (fun columnKey _ -> fit.Coefficients.ContainsKey(columnKey))
+      |> addInterceptColumn
+      |> computeXtXInverse
+
     /// <summary>
     /// The dataframe used for fitting the data.
     /// </summary>
@@ -123,25 +148,22 @@ module rec LinearRegression =
       let leftTail = Distributions.StudentT.CDF(0.0, 1.0, df, -tValue)
       leftTail + rightTail
 
-    let summary (fit:t<'a,'b>) =
+    let summary (fit:t<'a,'b> when 'b : comparison) =
       let residuals = fit |> (residuals >> Series.sort >> Series.values >> Seq.toArray)   
       let fitted = fit |> (fittedValues >> Series.values >> Seq.toArray)
       let actual = fit.InputFrame.[fit.yKey] |> Series.values |> Seq.toArray
       let fiveVals = Statistics.SortedArrayStatistics.FiveNumberSummary residuals
       let keys = ["Min:"; "1Q:"; "Median:"; "3Q"; "Max:"]
       let namedFiveVals = Seq.zip keys fiveVals |> Series.ofObservations
+      let xtxInv = Fit.computeXtXinverse fit
       let rhs = fit.Coefficients.Keys |> fun xs -> System.String.Join (" + ", xs)
       let nObs = fit.InputFrame.[fit.yKey] |> Series.countKeys |> float      
       let nCoeffs = fit.Coefficients |> Series.countKeys
       let r2 = GoodnessOfFit.RSquared (fitted, actual)
-      let stdErr = GoodnessOfFit.StandardError (fitted, actual, nCoeffs)
-      let filteredCoefficients = 
-          fit.Coefficients 
-          |> Series.filter (fun k _ -> match fit.FitIntercept with None -> true | Some intercept -> k <> intercept)
+      let stdErrorResiduals = GoodnessOfFit.StandardError (fitted, actual, nCoeffs)
       let stdErrors = 
-        filteredCoefficients
-        |> Series.filter (fun k _ -> match fit.FitIntercept with None -> true | Some intercept -> k <> intercept)
-        |> Series.map (fun k _ -> computeSquaredErrorFor stdErr filteredCoefficients fit.InputFrame k)
+        fit.Coefficients
+        |> Series.map (fun key _ -> stdErrorResiduals * sqrt xtxInv.[key].[key])
       let tValues = fit.Coefficients / stdErrors
       let tTestProbs = tValues |> Series.mapValues (twoSidedtTest (nObs - float nCoeffs))
       let tTable = [("Coefficients:", fit.Coefficients); ("Std.Err.", stdErrors); ("t value", tValues); ("Pr(>|t|)", tTestProbs)] |> Frame.ofColumns
@@ -152,7 +174,6 @@ module rec LinearRegression =
         RSquared = r2
         AdjRSquared = 1.0 - (1.0 - r2) * (nObs - 1.0  ) / (nObs - float nCoeffs)
       } : Summary.t<'b>
-
 
   let dataFrameContainsMissingValues columns df =
     let noOfColumns = Set.count columns    
