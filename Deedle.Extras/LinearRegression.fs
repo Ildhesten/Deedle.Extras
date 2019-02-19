@@ -108,6 +108,7 @@ module rec LinearRegression =
 
     module Summary =
       open System
+      open System
 
       type t<'b> when 'b : equality = 
         {
@@ -117,6 +118,16 @@ module rec LinearRegression =
           RSquared : float
           AdjRSquared : float
         }
+
+        override x.ToString () =
+          let newLine = Environment.NewLine
+          let formattedFiveVals = Frame.ofRows ["", x.ResidualFiveVals]
+          (sprintf "Formula: %s" x.LinearFormula) + newLine +
+          (formattedFiveVals.Format()) + newLine +
+          //(sprintf "%A" x.ResidualFiveVals) + newLine +
+          (x.TTable.Format()) + newLine +
+          (sprintf "R^2: %f, Adj. R^2: %f" x.RSquared x.AdjRSquared) + newLine
+
 
     let computeToleranceFor xKey xKeys frame =
       let otherKeys = xKeys |> Series.keys |> Seq.except (Seq.singleton xKey)
@@ -166,7 +177,7 @@ module rec LinearRegression =
         |> Series.map (fun key _ -> stdErrorResiduals * sqrt xtxInv.[key].[key])
       let tValues = fit.Coefficients / stdErrors
       let tTestProbs = tValues |> Series.mapValues (twoSidedtTest (nObs - float nCoeffs))
-      let tTable = [("Coefficients:", fit.Coefficients); ("Std.Err.", stdErrors); ("t value", tValues); ("Pr(>|t|)", tTestProbs)] |> Frame.ofColumns
+      let tTable = [("Estimate:", fit.Coefficients); ("Std.Err.", stdErrors); ("t value", tValues); ("Pr(>|t|)", tTestProbs)] |> Frame.ofColumns
       {
         LinearFormula = fit.yKey.ToString() + " ~ " + rhs
         ResidualFiveVals = namedFiveVals

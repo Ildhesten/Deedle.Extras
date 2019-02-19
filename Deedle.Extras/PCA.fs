@@ -82,6 +82,11 @@ module PCA =
     df
     |> Frame.mapCols normalizeColumn
 
+  /// <summary>
+  /// Normalizes the columns in the dataframe using a z-score.
+  /// That is (X - mean) / (std. dev)
+  /// </summary>
+  /// <param name="df">The dataframe to normalize</param>
   let normalizeColumns (df:Frame<'a,'b>) =
     let normalizeColumn (k:'b) (row:ObjectSeries<'a>) =
       row.As<float>()
@@ -90,6 +95,13 @@ module PCA =
     |> Frame.mapCols normalizeColumn
 
 
+  // TODO: Wrap this in the data type in this module so we can get both eigen values and vectors.  
+  /// <summary>
+  /// Computes the principal components from the data frame.
+  /// The principal components are listed from PC1 .. PCn
+  /// Where PC1 explains most of the variance.
+  /// </summary>
+  /// <param name="dataFrame">The data frame to do PCA</param>
   let pca dataFrame =
     let factorization = 
       dataFrame
@@ -101,8 +113,8 @@ module PCA =
     let eigenValues = 
       // eigen values are returned with least significant first.
       factorization.EigenValues
+      |> Vector.map (fun x -> x.Real)
       |> Vector.toSeq
-      |> Seq.map (fun x -> x.Real)
       |> Seq.rev
     let eigenVectors = 
       // as eigen vectors match the eigen values, these also has to be reversed.
