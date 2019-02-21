@@ -7,8 +7,15 @@ module PCA =
 
   type t<'a> when 'a : equality =
     {
-      PrincipalComponents : Frame<'a, string>
+      EigenVectors : Frame<'a, string>
+      EigenValues : Series<string, float>
     }
+
+  let eigenValues pca =
+    pca.EigenValues
+
+  let eigenVectors pca =
+    pca.EigenVectors
 
   let M = Matrix<float>.Build
 
@@ -95,13 +102,12 @@ module PCA =
     |> Frame.mapCols normalizeColumn
 
 
-  // TODO: Wrap this in the data type in this module so we can get both eigen values and vectors.  
   /// <summary>
   /// Computes the principal components from the data frame.
   /// The principal components are listed from PC1 .. PCn
   /// Where PC1 explains most of the variance.
   /// </summary>
-  /// <param name="dataFrame">The data frame to do PCA</param>
+  /// <param name="dataFrame">A PCA datatype that contains the eigen values and vectors.</param>
   let pca dataFrame =
     let factorization = 
       dataFrame
@@ -110,31 +116,32 @@ module PCA =
       |> covarianceMatrixOf
       |> Matrix.eigen
     
+    let createPcNameForIndex n =
+      sprintf "PC%d" (n + 1)
+
+    let colKeyArray = dataFrame.ColumnKeys |> Seq.toArray    
+
     let eigenValues = 
       // eigen values are returned with least significant first.
       factorization.EigenValues
       |> Vector.map (fun x -> x.Real)
       |> Vector.toSeq
       |> Seq.rev
+      |> Series.ofValues
+      |> Series.mapKeys createPcNameForIndex
     let eigenVectors = 
       // as eigen vectors match the eigen values, these also has to be reversed.
       factorization.EigenVectors
       |> Matrix.toColSeq 
       |> Seq.rev 
-      |> Matrix.Build.DenseOfColumnVectors
+      |> Seq.mapi (fun i x -> (createPcNameForIndex i, Vector.toSeq x |> Series.ofValues))
+      |> Frame.ofColumns
+      |> Frame.mapRowKeys (fun i -> colKeyArray.[i])
     
     if eigenVectors.RowCount <> dataFrame.ColumnCount then
       failwith "Row count of eigen vectors does not match the input columns"
-    let colKeyArray = dataFrame.ColumnKeys |> Seq.toArray
-    eigenVectors
-    |> Matrix.toArray2
-    |> Frame.ofArray2D
-    |> Frame.mapColKeys (fun i -> sprintf "PC%d" (i + 1))
-    |> Frame.mapRowKeys (fun i -> colKeyArray.[i])
-
-    //let projector (observation:float[]) =
-    //  let observationVector = observation |> Vector.Build.DenseOfArray
-    //  (eigenVectors.Transpose() * observationVector)
-    //  |> Vector.toArray
-      
-    //(eigenValues, eigenVectors, hest), projector
+    
+    {
+      EigenValues = eigenValues
+      EigenVectors = eigenVectors
+    }
