@@ -24,14 +24,15 @@ module PCA =
   /// <param name="pca">The PCA transformation.</param>
   let eigenVectors pca =
     pca.EigenVectors
-
+  
+  // TODO: Clean this mess up.
   let M = Matrix<float>.Build
 
   let correlationMatrixOf dataFrame =
     dataFrame
     |> Frame.toArray2D
     |> M.DenseOfArray
-
+  
   let covarianceMatrixOf (M:Matrix<float>) =
     let noOfColumns = M.ColumnCount
     let C = DenseMatrix.create noOfColumns noOfColumns Matrix.Zero
@@ -147,8 +148,7 @@ module PCA =
       |> Frame.mapRowKeys (fun i -> colKeyArray.[i])
     
     if eigenVectors.RowCount <> dataFrame.ColumnCount then
-      failwith "Row count of eigen vectors does not match the input columns"
-    
+      failwith "Row count of eigen vectors does not match the input columns"    
     {
       EigenValues = eigenValues
       EigenVectors = eigenVectors
