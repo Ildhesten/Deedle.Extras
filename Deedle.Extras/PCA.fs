@@ -11,9 +11,17 @@ module PCA =
       EigenValues : Series<string, float>
     }
 
+  /// <summary>
+  /// The eigen values of the PCA transformation.
+  /// </summary>
+  /// <param name="pca">The PCA transformation.</param>
   let eigenValues pca =
     pca.EigenValues
 
+  /// <summary>
+  /// The eigen vectors of the PCA transformation.
+  /// </summary>
+  /// <param name="pca">The PCA transformation.</param>
   let eigenVectors pca =
     pca.EigenVectors
 
