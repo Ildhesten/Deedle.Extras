@@ -93,3 +93,33 @@ type Frame() =
   /// <param name="df">The data frame to plot.</param>
   static member Line (df : Frame<'a,'b>) =
     Frame.LineColumnKeys (df, df.ColumnKeys)
+
+module LinearRegression =
+  open Deedle.Extras.LinearRegression.Fit
+  type Fit () =
+    
+    /// <summary>
+    /// Produces a 2D plot of a "slice" of the linear regression. If this is a multiple linear regression
+    /// the lines is fitted using the coefficient of the provided key and the intercept from the regression.
+    /// Therefore the fit may seem worse than if a simple regression had been applied.
+    /// </summary>
+    /// <param name="xKey">The key to plot the slice for.</param>
+    /// <param name="fit">The fit to plot the slice from.</param>
+    static member Plot (xKey : 'b, fit : t<'a,'b>) =
+      let xCoefficient = (coefficients fit).[xKey]
+      let intercept =
+        match fitIntercept fit with
+        | None -> 0.0
+        | Some interceptKey -> (coefficients fit).[interceptKey]
+      let yKey = yKey fit
+      let df = input fit
+      let xVals = df.[xKey] |> Series.values
+      let yVals = df.[yKey] |> Series.values      
+      let fittedData = xVals |> Seq.map (fun x -> x * xCoefficient + intercept)
+      [
+        Graph.Scatter (x = xVals, y = yVals, mode="markers", name = "Scatter plot");
+        Graph.Scatter (x = xVals, y = fittedData, mode="line", name = "Fit")
+      ] 
+      |> Chart.Plot
+      |> Chart.WithXTitle (xKey.ToString ())
+      |> Chart.WithYTitle (yKey.ToString ())

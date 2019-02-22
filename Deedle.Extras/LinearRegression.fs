@@ -106,6 +106,9 @@ module rec LinearRegression =
       let fitted = fittedValues fit
       fit.InputFrame.[fit.yKey] - fitted
 
+    let yKey fit =
+      fit.yKey
+
     module Summary =
       open System
       open System

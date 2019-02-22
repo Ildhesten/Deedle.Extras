@@ -10,6 +10,7 @@ module LinearRegression =
     val coefficients : t<'a,'b> -> Series<'b, float>
     val fitIntercept : t<'a,'b> -> 'b option
     val fittedValues : t<'a,'b> -> Series<'a, float>
+    val yKey : t<'a,'b> -> 'b
     val residuals : t<'a,'b> -> Series<'a,float>
 
     module Summary =
