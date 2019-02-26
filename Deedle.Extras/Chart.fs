@@ -123,3 +123,28 @@ module LinearRegression =
       |> Chart.Plot
       |> Chart.WithXTitle (xKey.ToString ())
       |> Chart.WithYTitle (yKey.ToString ())
+
+module ACF =
+  open Deedle.Extras.ACF
+
+  /// <summary>
+  /// Plots the autocorrelations from an acf.
+  /// The bars are autocorrelations of different lags, and the 
+  /// dashed lines are the significance levels.
+  /// </summary>
+  /// <param name="acf">The acf to plot</param>
+  let Plot (acf : t) =
+    let acs = autoCorrelations acf
+    let bound = bound acf
+    let noOfAcs = acs |> Series.countKeys
+    let upperBound = Seq.init noOfAcs (fun _ -> bound)
+    let lowerBound = Seq.init noOfAcs (fun _ -> -bound)
+    [
+      XPlot.Plotly.Graph.Scatter (x = acs.Keys, y = lowerBound, mode = "line", line = new Line(color = "cornflowerblue", dash = "4")) :> Trace;
+      XPlot.Plotly.Graph.Bar (x = acs.Keys, y = acs.Values) :> Trace;
+      XPlot.Plotly.Graph.Scatter (x = acs.Keys, y = upperBound, mode = "line", line = new Line(color = "cornflowerblue", dash = "4")) :> Trace
+    ]
+    |> Chart.Plot
+    |> Chart.WithLabels ["Significance limit"; "Autocorrelations"; "Significance limit"]
+    |> Chart.WithXTitle "Lag"
+    |> Chart.WithYTitle "Correlation"

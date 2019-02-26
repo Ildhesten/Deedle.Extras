@@ -6,6 +6,8 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Include="ACF.fsi" />
+    <Compile Include="ACF.fs" />
     <Compile Include="Stats.fs" />
     <Compile Include="PCA.fsi" />
     <Compile Include="PCA.fs" />
