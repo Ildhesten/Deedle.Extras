@@ -25,4 +25,6 @@ I have also included a few utility functions to easy plotting content from data 
     |> Charting.Frame.Line
 Will render an Xplot line chart of all columns, with their column key as label, and row keys on the x-axis.
 
-Hopefully you will find it useful too. Any suggestions and pull requests are more than welcome.
+For a more comprehensive description of the features, please take a look at [How do I?](https://github.com/Ildhesten/Deedle.Extras/wiki/How-do-I%3F)
+
+Hopefully you will find this library useful too. Any suggestions and pull requests are more than welcome.
