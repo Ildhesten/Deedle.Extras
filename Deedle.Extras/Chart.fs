@@ -4,14 +4,20 @@ open XPlot.Plotly
 
 type Chart() =
   static member private LineGraph (s : Series<'a,'b>, name : string option) =
+    let observations = Series.observations s
+    let xs = Seq.map fst observations
+    let ys = Seq.map snd observations
     match name with
-    | None -> Graph.Scatter(x = s.Keys, y = s.Values, mode = "Line")
-    | Some name -> Graph.Scatter(x = s.Keys, y = s.Values, mode = "Line", name = name)
+    | None -> Graph.Scatter(x = xs, y = ys, mode = "Line")
+    | Some name -> Graph.Scatter(x = xs, y = ys, mode = "Line", name = name)
     
   static member private ScatterGraph (s : Series<'a,'b>, name : string option) =
+    let observations = Series.observations s
+    let xs = Seq.map fst observations
+    let ys = Seq.map snd observations
     match name with
-    | None -> Graph.Scatter(x = s.Keys, y = s.Values, mode="markers")
-    | Some name -> Graph.Scatter(x = s.Keys, y = s.Values, mode = "markers", name = name)
+    | None -> Graph.Scatter(x = xs, y = ys, mode="markers")
+    | Some name -> Graph.Scatter(x = xs, y = ys, mode = "markers", name = name)
 
   static member Line (s : Series<'a,'b>, ?name : string) =
     Chart.LineGraph (s,name)
