@@ -25,7 +25,7 @@ module Stats =
 
 
   let covariance (df: Frame<'a,'b>) : Frame<'b,'b> =
-    let columnKeys = df.ColumnKeys    
+    let columnKeys = df.ColumnKeys
     let covarianceForColumnKey k =
       columnKeys
       |> Seq.map (fun k' ->
@@ -43,3 +43,6 @@ module Stats =
       |> Seq.zip columnKeys
     Frame.ofRows covariancesForEachColumnKey
 
+  let quantile (tau : float) (series : Series<'K,float>) : float =
+    let values = Series.values series
+    Statistics.Statistics.Quantile(values, tau)
