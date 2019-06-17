@@ -10,7 +10,7 @@ type Chart() =
     match name with
     | None -> Graph.Scatter(x = xs, y = ys, mode = "Line")
     | Some name -> Graph.Scatter(x = xs, y = ys, mode = "Line", name = name)
-    
+
   static member private ScatterGraph (s : Series<'a,'b>, name : string option) =
     let observations = Series.observations s
     let xs = Seq.map fst observations
@@ -35,6 +35,10 @@ type Chart() =
   static member Line (s : Series<'a,'b> seq, names : string seq) =
     let mappedNames = Seq.map Some names
     Chart.Line (s, mappedNames)
+
+  static member Scatter (s : Series<'a,'b>, name : string option) =
+    Chart.ScatterGraph (s, name)
+    |> Chart.Plot
 
   static member Scatter (s : Series<'a,'b> seq, names : string option seq) =
     if Seq.length s <> Seq.length names then
@@ -61,15 +65,15 @@ type Frame() =
   /// <param name="df">The data frame to plot.</param>
   /// <param name="columnKeys">The column keys you want to plot.</param>
   static member LineColumnKeys(df : Frame<'a,'b>, columnKeys : 'b seq) =
-    let names = 
-      columnKeys 
-      |> Seq.map (sprintf "%A") 
+    let names =
+      columnKeys
+      |> Seq.map (sprintf "%A")
       |> Seq.map Some
-    let series = 
-      columnKeys 
+    let series =
+      columnKeys
       |> Seq.map (fun k -> df.[k])
     Chart.Line(series, names)
-  
+
   /// <summary>
   /// Plots all columns in the data frame as scatter plots.
   /// specified in the in the column key sequence.
@@ -77,14 +81,14 @@ type Frame() =
   /// <param name="df">The data frame to plot.</param>
   /// <param name="columnKeys">The column keys you want to plot.</param>
   static member ScatterColumnKeys(df : Frame<'a,'b>, columnKeys : 'b seq) =
-    let names = 
-      columnKeys 
-      |> Seq.map (sprintf "%A") 
+    let names =
+      columnKeys
+      |> Seq.map (sprintf "%A")
       |> Seq.map Some
-    let series = 
-      columnKeys 
+    let series =
+      columnKeys
       |> Seq.map (fun k -> df.[k])
-    Chart.Scatter(series, names)    
+    Chart.Scatter(series, names)
 
   /// <summary>
   /// Plots all columns in the data frame as scatter plots.
@@ -103,7 +107,7 @@ type Frame() =
 module LinearRegression =
   open Deedle.Extras.LinearRegression.Fit
   type Fit () =
-    
+
     /// <summary>
     /// Produces a 2D plot of a "slice" of the linear regression. If this is a multiple linear regression
     /// the lines is fitted using the coefficient of the provided key and the intercept from the regression.
@@ -120,12 +124,12 @@ module LinearRegression =
       let yKey = yKey fit
       let df = input fit
       let xVals = df.[xKey] |> Series.values
-      let yVals = df.[yKey] |> Series.values      
+      let yVals = df.[yKey] |> Series.values
       let fittedData = xVals |> Seq.map (fun x -> x * xCoefficient + intercept)
       [
         Graph.Scatter (x = xVals, y = yVals, mode="markers", name = "Scatter plot");
         Graph.Scatter (x = xVals, y = fittedData, mode="line", name = "Fit")
-      ] 
+      ]
       |> Chart.Plot
       |> Chart.WithXTitle (xKey.ToString ())
       |> Chart.WithYTitle (yKey.ToString ())
@@ -135,7 +139,7 @@ module ACF =
 
   /// <summary>
   /// Plots the autocorrelations from an acf.
-  /// The bars are autocorrelations of different lags, and the 
+  /// The bars are autocorrelations of different lags, and the
   /// dashed lines are the significance levels.
   /// </summary>
   /// <param name="acf">The acf to plot</param>
